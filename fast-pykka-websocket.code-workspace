@@ -1,0 +1,22 @@
+{
+	"folders": [
+		{
+			"path": "."
+		}
+	],
+	"settings": {
+		"cSpell.words": [
+			"asyncio",
+			"culsans",
+			"pykka",
+			"Pykka",
+			"pyproject",
+			"uvicorn",
+			"venv"
+		]
+	},
+	"launch": {
+		"version": "0.2.0",
+		"configurations": []
+	}
+}

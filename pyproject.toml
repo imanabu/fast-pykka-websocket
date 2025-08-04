@@ -1,0 +1,16 @@
+[project]
+name = "fast_pykka_websocket"
+version = "0.1.0"
+requires-python = ">=3.12"
+description = "A playground to work with Pykka, FastAPI and Websokect."
+dependencies = [
+    "fastapi",
+    "jinja2",
+    "pykka",
+    "pydantic",
+    "uvicorn[standard]"
+]
+
+[build-system]
+requires = ["setuptools", "wheel"]
+build-backend = "setuptools.build_meta"

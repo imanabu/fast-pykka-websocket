@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>FastAPI WebSocket Demo</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 flex items-center justify-center min-h-screen">
+    <div class="bg-white rounded-xl shadow-lg p-8 w-full max-w-lg">
+        <h1 class="text-3xl font-bold mb-6 text-center text-gray-800">FastAPI WebSocket Demo</h1>
+        <div class="mb-4">
+            <label for="url" class="block text-sm font-medium text-gray-700">WebSocket URL</label>
+            <input type="text" id="url" value="ws://localhost:8000/ws"
+                   class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+        </div>
+        <div class="flex space-x-4">
+            <button id="connect"
+                    class="flex-1 w-full inline-flex items-center justify-center px-4 py-2 border border-transparent text-base font-medium rounded-md shadow-sm text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
+                Connect
+            </button>
+            <button id="disconnect"
+                    class="flex-1 w-full inline-flex items-center justify-center px-4 py-2 border border-transparent text-base font-medium rounded-md shadow-sm text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500">
+                Disconnect
+            </button>
+        </div>
+
+        <div class="mt-6 text-center">
+            <input type="text" id="broadcastMessage" placeholder="Enter message to broadcast"
+                   class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+            <button id="broadcast"
+                    class="mt-4 w-full inline-flex items-center justify-center px-4 py-2 border border-transparent text-base font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                Broadcast
+            </button>
+        </div>
+        
+        <h2 class="text-xl font-semibold mt-8 mb-4 text-gray-800">Messages from Server</h2>
+        <div class="h-64 overflow-y-auto bg-gray-50 border border-gray-200 rounded-md p-4">
+            <ul id="messages" class="space-y-2"></ul>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const connectButton = document.getElementById('connect');
+            const disconnectButton = document.getElementById('disconnect');
+            const broadcastButton = document.getElementById('broadcast');
+            const messagesList = document.getElementById('messages');
+            const urlInput = document.getElementById('url');
+            const broadcastMessageInput = document.getElementById('broadcastMessage');
+            let ws;
+
+            connectButton.onclick = function() {
+                if (ws && ws.readyState === WebSocket.OPEN) {
+                    addMessage('Connection already open.', 'text-yellow-600');
+                    return;
+                }
+                const url = urlInput.value;
+                ws = new WebSocket(url);
+
+                ws.onopen = function(event) {
+                    addMessage('Connection established.', 'text-green-600');
+                    disconnectButton.disabled = false;
+                    connectButton.disabled = true;
+                };
+
+                ws.onmessage = function(event) {
+                    addMessage(event.data, 'text-gray-800');
+                };
+
+                ws.onclose = function(event) {
+                    addMessage('Connection closed.', 'text-red-600');
+                    disconnectButton.disabled = true;
+                    connectButton.disabled = false;
+                };
+
+                ws.onerror = function(event) {
+                    addMessage('Error occurred.', 'text-red-600');
+                };
+            };
+
+            disconnectButton.onclick = function() {
+                if (ws) {
+                    ws.close();
+                }
+            };
+
+            broadcastButton.onclick = function() {
+                const message = broadcastMessageInput.value;
+                if (message) {
+                    fetch(`/broadcast?message=${encodeURIComponent(message)}`)
+                        .then(response => {
+                            if (response.ok) {
+                                addMessage('Broadcast message sent.', 'text-blue-600');
+                            } else {
+                                addMessage('Failed to send broadcast message.', 'text-red-600');
+                            }
+                        })
+                        .catch(error => {
+                            addMessage('Error sending broadcast message.', 'text-red-600');
+                            console.error('Broadcast error:', error);
+                        });
+                }
+            };
+
+            function addMessage(message, colorClass) {
+                const li = document.createElement('li');
+                li.className = `p-2 rounded-md bg-gray-100 ${colorClass}`;
+                li.textContent = message;
+                messagesList.appendChild(li);
+                messagesList.scrollTop = messagesList.scrollHeight; // Auto-scroll to the bottom
+            }
+
+            // Initial state
+            disconnectButton.disabled = true;
+        });
+    </script>
+</body>
+</html>
